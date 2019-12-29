@@ -1,4 +1,4 @@
-package tinydgraph
+package dglite
 
 type writer struct {
 	ids chan uint64
@@ -12,7 +12,7 @@ func newWriter() *writer {
 	go func() {
 		c := uint64(0)
 		for {
-			c := c + 1
+			c = c + 1
 			wr.ids <- c
 		}
 	}()
@@ -24,7 +24,7 @@ func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 	res := []RDF{}
 	var uid uint64
 
-	if _, ok := node["uid"]; ok {
+	if actual, ok := node["uid"]; ok && actual != float64(0) {
 		uid = uint64(node["uid"].(float64))
 	} else {
 		uid = <-wr.ids

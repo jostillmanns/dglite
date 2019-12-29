@@ -1,4 +1,4 @@
-package tinydgraph
+package dglite
 
 import (
 	"mooncamp.com/dgx/gql"
