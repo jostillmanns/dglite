@@ -4,7 +4,7 @@ import (
 	"mooncamp.com/dgx/gql"
 )
 
-func (rdr *reader) resolveVariables(qs []gql.GraphQuery, rdfs []RDF) []gql.GraphQuery {
+func (rdr *reader) resolveVariables(qs []gql.GraphQuery) []gql.GraphQuery {
 	res := []gql.GraphQuery{}
 	for _, q := range qs {
 		if q.NeedsVar == nil {
@@ -12,13 +12,13 @@ func (rdr *reader) resolveVariables(qs []gql.GraphQuery, rdfs []RDF) []gql.Graph
 			continue
 		}
 
-		res = append(res, rdr.resolveVariable(q, qs, rdfs))
+		res = append(res, rdr.resolveVariable(q, qs))
 	}
 
 	return res
 }
 
-func (rdr *reader) resolveVariable(on gql.GraphQuery, qs []gql.GraphQuery, rdfs []RDF) gql.GraphQuery {
+func (rdr *reader) resolveVariable(on gql.GraphQuery, qs []gql.GraphQuery) gql.GraphQuery {
 	cln := gql.CopyGraphQuery(on)
 	for _, q := range qs {
 		if !rdr.hasVariable(on.NeedsVar[0].Name, q) {
@@ -26,10 +26,10 @@ func (rdr *reader) resolveVariable(on gql.GraphQuery, qs []gql.GraphQuery, rdfs 
 		}
 
 		if q.NeedsVar != nil {
-			q = rdr.resolveVariable(q, qs, rdfs)
+			q = rdr.resolveVariable(q, qs)
 		}
 
-		nodes := rdr.read(q, rdfs)
+		nodes := rdr.read(q)
 
 		uints := []uint64{}
 		for _, n := range nodes {
@@ -72,34 +72,6 @@ func (rdr *reader) grabVariableValue(node map[string]interface{}) []uint64 {
 	}
 
 	return nil
-}
-
-func (rdr *reader) reduceGraphQuery(q gql.GraphQuery, v string) gql.GraphQuery {
-	cln := gql.CopyGraphQuery(q)
-	for _, e := range cln.Children {
-		if e.Var == v {
-			cln.Children = []gql.GraphQuery{e}
-			return cln
-		}
-
-		if rdr.hasVariable(v, e) {
-			cln.Children = []gql.GraphQuery{rdr.reduceGraphQuery(e, v)}
-			return cln
-		}
-	}
-	return gql.GraphQuery{}
-}
-
-func (rdr *reader) findVariables(q gql.GraphQuery) []string {
-	res := []string{}
-	for _, e := range q.Children {
-		res = append(res, rdr.findVariables(e)...)
-	}
-
-	if q.Var != "" {
-		res = append(res, q.Var)
-	}
-	return res
 }
 
 func (rdr *reader) hasVariable(v string, q gql.GraphQuery) bool {

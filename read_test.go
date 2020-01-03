@@ -51,21 +51,27 @@ func Test_it_supports_children(t *testing.T) {
 		},
 	}
 
-	rdr := &reader{
-		schemas: []Schema{
-			{Predicate: "children", Many: true},
-			{Predicate: "child", Many: false},
-			{Predicate: "name", Many: false},
-		},
+	schema := []Schema{
+		{Predicate: "children", Many: true},
+		{Predicate: "child", Many: false},
+		{Predicate: "name", Many: false},
 	}
 
-	a := rdr.read(q, rdfs)
+	rdr := &reader{
+		schemas:  schema,
+		database: newMapDB(schema),
+	}
+
+	js, _ = json.MarshalIndent(rdr.database.(*mapdb).rdfs, "", "  ")
+	fmt.Println(string(js))
+
+	rdr.database.Write(rdfs)
+
+	a := rdr.read(q)
 	require.Len(t, a, 1)
 
 	js, err = json.Marshal(a[0])
 	require.NoError(t, err)
-
-	fmt.Println(string(js))
 
 	var actual node
 	err = json.Unmarshal(js, &actual)
@@ -118,15 +124,18 @@ func Test_it_reads(t *testing.T) {
 		},
 	}
 
-	rdr := &reader{
-		schemas: []Schema{
-			{Predicate: "children", Many: true},
-			{Predicate: "child", Many: false},
-			{Predicate: "name", Many: false},
-		},
+	schema := []Schema{
+		{Predicate: "children", Many: true},
+		{Predicate: "child", Many: false},
+		{Predicate: "name", Many: false},
 	}
 
-	a := rdr.read(q, rdfs)
+	rdr := &reader{
+		schemas:  schema,
+		database: newMapDB(schema),
+	}
+	rdr.database.Write(rdfs)
+	a := rdr.read(q)
 	require.Len(t, a, 1)
 
 	js, err = json.Marshal(a[0])

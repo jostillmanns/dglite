@@ -48,14 +48,18 @@ func Test_it_resolves_variables(t *testing.T) {
 		},
 	}
 
-	rdr := &reader{
-		schemas: []Schema{
-			{Predicate: "children", Many: true},
-			{Predicate: "child", Many: false},
-			{Predicate: "name", Many: false},
-		},
+	schemas := []Schema{
+		{Predicate: "children", Many: true},
+		{Predicate: "child", Many: false},
+		{Predicate: "name", Many: false},
 	}
-	actual := rdr.resolveVariables(qs, rdfs)
+
+	rdr := &reader{
+		schemas:  schemas,
+		database: newMapDB(schemas),
+	}
+	rdr.database.Write(rdfs)
+	actual := rdr.resolveVariables(qs)
 
 	expected := []gql.GraphQuery{
 		{

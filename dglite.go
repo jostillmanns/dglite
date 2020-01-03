@@ -37,13 +37,11 @@ type DGLite interface {
 type dglite struct {
 	reader *reader
 	writer *writer
-
-	rdfs []RDF
 }
 
 func New(schema []Schema) DGLite {
 	return &dglite{
-		reader: &reader{schemas: schema},
+		reader: &reader{schemas: schema, database: newMapDB(schema)},
 		writer: newWriter(),
 	}
 }
@@ -62,7 +60,7 @@ func (dgl *dglite) Write(in interface{}) ([]uint64, error) {
 	uids := []uint64{}
 	for _, n := range ns {
 		rdfs, uid := dgl.writer.rdfify(n)
-		dgl.rdfs = append(dgl.rdfs, rdfs...)
+		dgl.reader.database.Write(rdfs)
 		uids = append(uids, uid)
 	}
 
@@ -70,7 +68,7 @@ func (dgl *dglite) Write(in interface{}) ([]uint64, error) {
 }
 
 func (dgl *dglite) Read(qs []gql.GraphQuery, in interface{}) error {
-	resolved := dgl.reader.resolveVariables(qs, dgl.rdfs)
+	resolved := dgl.reader.resolveVariables(qs)
 	var nodes []map[string]interface{}
 
 	for _, e := range resolved {
@@ -78,7 +76,7 @@ func (dgl *dglite) Read(qs []gql.GraphQuery, in interface{}) error {
 			continue
 		}
 
-		next := dgl.reader.read(e, dgl.rdfs)
+		next := dgl.reader.read(e)
 		nodes = append(next, nodes...)
 	}
 
