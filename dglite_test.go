@@ -11,7 +11,7 @@ type User struct {
 	ID     uint64  `json:"uid"`
 	Name   string  `json:"user.name"`
 	Office *Office `json:"user.office"`
-	Teams  []Team  `json:"user.team"`
+	Teams  []Team  `json:"user.teams"`
 }
 
 type Office struct {
@@ -28,6 +28,18 @@ type Team struct {
 type Location struct {
 	City    string `json:"location.city"`
 	Country string `json:"location.country"`
+}
+
+var testSchema = []Schema{
+	{Predicate: "user.name", Type: "string", Many: false},
+	{Predicate: "user.office", Type: "uid", Many: false},
+	{Predicate: "user.teams", Type: "uid", Many: true},
+	{Predicate: "user.name", Type: "string", Many: false},
+	{Predicate: "office.name", Type: "string", Many: false},
+	{Predicate: "office.location", Type: "uid", Many: false},
+	{Predicate: "location.city", Type: "string", Many: false},
+	{Predicate: "location.country", Type: "string", Many: false},
+	{Predicate: "team.name", Type: "string", Many: false},
 }
 
 func Test_it_finds_all_locations(t *testing.T) {
@@ -54,19 +66,7 @@ func Test_it_finds_all_locations(t *testing.T) {
 		},
 	}
 
-	schema := []Schema{
-		{Predicate: "user.name", Type: "string", Many: false},
-		{Predicate: "user.office", Type: "uid", Many: false},
-		{Predicate: "user.teams", Type: "uid", Many: true},
-		{Predicate: "user.name", Type: "string", Many: false},
-		{Predicate: "office.name", Type: "string", Many: false},
-		{Predicate: "office.location", Type: "uid", Many: false},
-		{Predicate: "location.city", Type: "string", Many: false},
-		{Predicate: "location.country", Type: "string", Many: false},
-		{Predicate: "team.name", Type: "string", Many: false},
-	}
-
-	dgl := New(schema)
+	dgl := New(testSchema)
 	uids, err := dgl.Write(in)
 	require.NoError(t, err)
 

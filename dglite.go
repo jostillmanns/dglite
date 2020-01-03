@@ -80,7 +80,7 @@ func (dgl *dglite) Read(qs []gql.GraphQuery, in interface{}) error {
 		nodes = append(next, nodes...)
 	}
 
-	js, err := json.Marshal(nodes)
+	js, err := json.MarshalIndent(nodes, "", "  ")
 	if err != nil {
 		return err
 	}

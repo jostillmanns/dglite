@@ -2,7 +2,6 @@ package dglite
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +14,12 @@ type node struct {
 
 	Child    *node  `json:"child"`
 	Children []node `json:"children"`
+}
+
+var testNodeSchema = []Schema{
+	{Predicate: "children", Many: true},
+	{Predicate: "child", Many: false},
+	{Predicate: "name", Many: false},
 }
 
 func Test_it_supports_children(t *testing.T) {
@@ -51,19 +56,10 @@ func Test_it_supports_children(t *testing.T) {
 		},
 	}
 
-	schema := []Schema{
-		{Predicate: "children", Many: true},
-		{Predicate: "child", Many: false},
-		{Predicate: "name", Many: false},
-	}
-
 	rdr := &reader{
-		schemas:  schema,
-		database: newMapDB(schema),
+		schemas:  testNodeSchema,
+		database: newMapDB(testNodeSchema),
 	}
-
-	js, _ = json.MarshalIndent(rdr.database.(*mapdb).rdfs, "", "  ")
-	fmt.Println(string(js))
 
 	rdr.database.Write(rdfs)
 
@@ -124,15 +120,9 @@ func Test_it_reads(t *testing.T) {
 		},
 	}
 
-	schema := []Schema{
-		{Predicate: "children", Many: true},
-		{Predicate: "child", Many: false},
-		{Predicate: "name", Many: false},
-	}
-
 	rdr := &reader{
-		schemas:  schema,
-		database: newMapDB(schema),
+		schemas:  testNodeSchema,
+		database: newMapDB(testNodeSchema),
 	}
 	rdr.database.Write(rdfs)
 	a := rdr.read(q)

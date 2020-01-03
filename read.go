@@ -7,6 +7,7 @@ import (
 type reader struct {
 	schemas  []Schema
 	database database
+	filter   filter
 }
 
 func (rdr *reader) read(q gql.GraphQuery) []map[string]interface{} {
@@ -15,8 +16,19 @@ func (rdr *reader) read(q gql.GraphQuery) []map[string]interface{} {
 	switch q.Func.Name {
 	case "uid":
 		for _, e := range q.UID {
+			if q.Filter != nil {
+				if !rdr.filter.filter(e, *q.Filter) {
+					continue
+				}
+			}
 			res = append(res, rdr.resolveChildren(e, q.Children))
 		}
+	case "has":
+		uids := rdr.database.ReversePredicate(q.Func.Attr)
+		cln := gql.CopyGraphQuery(q)
+		cln.Func = &gql.Function{Name: "uid"}
+		cln.UID = uids
+		return rdr.read(cln)
 	default:
 	}
 	return res
@@ -41,12 +53,21 @@ func (rdr *reader) resolveChildren(uid uint64, qs []gql.GraphQuery) map[string]i
 			}
 
 			if rdf.Type == "uid" {
+				if q.Filter != nil {
+					if !rdr.filter.filter(rdf.Object.(uint64), *q.Filter) {
+						continue
+					}
+				}
+
 				if schema.Many {
 					if _, ok := res[q.Attr]; !ok {
 						res[q.Attr] = []interface{}{}
 					}
 
-					res[q.Attr] = append(res[q.Attr].([]interface{}), rdr.resolveChildren(rdf.Object.(uint64), q.Children))
+					res[q.Attr] = append(
+						res[q.Attr].([]interface{}),
+						rdr.resolveChildren(rdf.Object.(uint64), q.Children),
+					)
 					continue
 				}
 

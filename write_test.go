@@ -1,7 +1,6 @@
 package dglite
 
 import (
-	"fmt"
 	"sort"
 	"testing"
 
@@ -35,10 +34,6 @@ func Test_it_creates_rdfs(t *testing.T) {
 	actual, _ := wr.rdfify(in)
 	sort.Sort(RDFs(actual))
 	sort.Sort(RDFs(expected))
-
-	for _, e := range actual {
-		fmt.Println(e)
-	}
 
 	require.ElementsMatch(t, expected, actual)
 }
