@@ -4,6 +4,7 @@ type database interface {
 	Get(uid uint64) []RDF
 	Write(rdfs []RDF)
 	ReversePredicate(predicate string) []uint64
+	ReverseObject(predicate string, values []string) []uint64
 }
 
 type mapdb struct {
@@ -15,6 +16,22 @@ func newMapDB(schema []Schema) database {
 	return &mapdb{rdfs: make(map[uint64][]RDF), schema: schema}
 }
 
+func (db *mapdb) ReverseObject(predicate string, values []string) []uint64 {
+	res := make([]uint64, 0)
+	for k, v := range db.rdfs {
+		if !db.hasPredicate(v, predicate) {
+			continue
+		}
+
+		if !db.hasValue(v, values[0]) {
+			continue
+		}
+
+		res = append(res, k)
+	}
+	return res
+}
+
 func (db *mapdb) ReversePredicate(predicate string) []uint64 {
 	res := make([]uint64, 0)
 	for k, v := range db.rdfs {
@@ -23,6 +40,20 @@ func (db *mapdb) ReversePredicate(predicate string) []uint64 {
 		}
 	}
 	return res
+}
+
+func (db *mapdb) hasValue(rdfs []RDF, value string) bool {
+	for _, e := range rdfs {
+		switch actual := e.Object.(type) {
+		case string:
+			if value == actual {
+				return true
+			}
+		default:
+			return false
+		}
+	}
+	return false
 }
 
 func (db *mapdb) hasPredicate(rdfs []RDF, predicate string) bool {

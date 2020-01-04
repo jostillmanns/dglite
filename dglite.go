@@ -32,6 +32,7 @@ type Schema struct {
 type DGLite interface {
 	Write(interface{}) ([]uint64, error)
 	Read([]gql.GraphQuery, interface{}) error
+	WriteRDF([]PlaceholderRDF)
 }
 
 type dglite struct {
@@ -44,6 +45,11 @@ func New(schema []Schema) DGLite {
 		reader: &reader{schemas: schema, database: newMapDB(schema)},
 		writer: newWriter(schema),
 	}
+}
+
+func (dgl *dglite) WriteRDF(rdfs []PlaceholderRDF) {
+	actualRDFS := dgl.writer.resolvePlaceholder(rdfs)
+	dgl.reader.database.Write(actualRDFS)
 }
 
 func (dgl *dglite) Write(in interface{}) ([]uint64, error) {

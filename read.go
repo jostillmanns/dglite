@@ -29,6 +29,17 @@ func (rdr *reader) read(q gql.GraphQuery) []map[string]interface{} {
 		cln.Func = &gql.Function{Name: "uid"}
 		cln.UID = uids
 		return rdr.read(cln)
+	case "eq":
+		args := []string{}
+		for _, e := range q.Func.Args {
+			args = append(args, e.Value)
+		}
+
+		uids := rdr.database.ReverseObject(q.Func.Attr, args)
+		cln := gql.CopyGraphQuery(q)
+		cln.Func = &gql.Function{Name: "uid"}
+		cln.UID = uids
+		return rdr.read(cln)
 	default:
 	}
 	return res

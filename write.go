@@ -22,6 +22,43 @@ func newWriter(schema []Schema) *writer {
 	return wr
 }
 
+type PlaceholderRDF struct {
+	RDF
+	PlaceHolder string
+}
+
+func (wr *writer) resolvePlaceholder(rdfs []PlaceholderRDF) []RDF {
+	placeholders := map[string]uint64{}
+	for _, e := range rdfs {
+		placeholders[e.PlaceHolder] = 0
+	}
+
+	for k := range placeholders {
+		placeholders[k] = <-wr.ids
+	}
+
+	res := make([]RDF, 0, len(rdfs))
+	for _, e := range rdfs {
+		next := RDF{Predicate: e.Predicate, Object: e.Object}
+		if actual, ok := placeholders[e.PlaceHolder]; ok {
+			next.Subject = actual
+		}
+
+		switch obj := e.Object.(type) {
+		case string:
+			if actual, ok := placeholders[obj]; ok {
+				next.Object = actual
+			}
+		}
+
+		if next.Subject != 0 {
+			res = append(res, next)
+		}
+	}
+
+	return res
+}
+
 func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 	res := []RDF{}
 	var uid uint64
