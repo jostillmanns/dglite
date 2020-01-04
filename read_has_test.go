@@ -112,6 +112,7 @@ func Test_it_supports_uid_filter_on_nested(t *testing.T) {
 
 	var notFiltered []User
 	err = dgl.Read(q, &notFiltered)
+	require.NoError(t, err)
 	require.Len(t, notFiltered, 1)
 	require.Len(t, notFiltered[0].Teams, 2)
 
@@ -129,5 +130,6 @@ func Test_it_supports_uid_filter_on_nested(t *testing.T) {
 
 	var filtered []User
 	err = dgl.Read(q, &filtered)
+	require.NoError(t, err)
 	require.Len(t, filtered[0].Teams, 1)
 }

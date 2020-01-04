@@ -25,7 +25,7 @@ func Test_it_resolves_variables(t *testing.T) {
 	err = json.Unmarshal(js, &n)
 	require.NoError(t, err)
 
-	wr := newWriter()
+	wr := newWriter(testNodeSchema)
 	rdfs, uid := wr.rdfify(n)
 
 	qs := []gql.GraphQuery{
@@ -59,6 +59,7 @@ func Test_it_resolves_variables(t *testing.T) {
 		database: newMapDB(schemas),
 	}
 	rdr.database.Write(rdfs)
+
 	actual := rdr.resolveVariables(qs)
 
 	expected := []gql.GraphQuery{

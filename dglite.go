@@ -42,7 +42,7 @@ type dglite struct {
 func New(schema []Schema) DGLite {
 	return &dglite{
 		reader: &reader{schemas: schema, database: newMapDB(schema)},
-		writer: newWriter(),
+		writer: newWriter(schema),
 	}
 }
 

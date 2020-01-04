@@ -17,9 +17,9 @@ type node struct {
 }
 
 var testNodeSchema = []Schema{
-	{Predicate: "children", Many: true},
-	{Predicate: "child", Many: false},
-	{Predicate: "name", Many: false},
+	{Predicate: "children", Many: true, Type: "uid"},
+	{Predicate: "child", Many: false, Type: "uid"},
+	{Predicate: "name", Many: false, Type: "string"},
 }
 
 func Test_it_supports_children(t *testing.T) {
@@ -39,7 +39,7 @@ func Test_it_supports_children(t *testing.T) {
 	err = json.Unmarshal(js, &n)
 	require.NoError(t, err)
 
-	wr := newWriter()
+	wr := newWriter(testNodeSchema)
 	rdfs, uid := wr.rdfify(n)
 
 	q := gql.GraphQuery{
@@ -97,7 +97,7 @@ func Test_it_reads(t *testing.T) {
 	err = json.Unmarshal(js, &n)
 	require.NoError(t, err)
 
-	wr := newWriter()
+	wr := newWriter(testNodeSchema)
 	rdfs, uid := wr.rdfify(n)
 
 	q := gql.GraphQuery{

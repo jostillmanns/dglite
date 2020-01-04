@@ -1,12 +1,14 @@
 package dglite
 
 type writer struct {
-	ids chan uint64
+	ids    chan uint64
+	schema []Schema
 }
 
-func newWriter() *writer {
+func newWriter(schema []Schema) *writer {
 	wr := &writer{
-		ids: make(chan uint64),
+		ids:    make(chan uint64),
+		schema: schema,
 	}
 
 	go func() {
@@ -35,8 +37,33 @@ func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 			continue
 		}
 
-		switch actual := v.(type) {
-		case map[string]interface{}:
+		if v == nil {
+			continue
+		}
+
+		schema, ok := findSchema(wr.schema, k)
+		if !ok {
+			continue
+		}
+
+		switch schema.Type {
+		case "uid":
+			if schema.Many {
+				actual := v.([]interface{})
+
+				for _, e := range actual {
+					next, id := wr.rdfify(e.(map[string]interface{}))
+					if len(next) == 0 {
+						continue
+					}
+
+					res = append(res, RDF{Subject: uid, Predicate: k, Object: id, Type: "uid"})
+					res = append(res, next...)
+				}
+				continue
+			}
+
+			actual := v.(map[string]interface{})
 			next, id := wr.rdfify(actual)
 			if len(next) == 0 {
 				continue
@@ -44,27 +71,8 @@ func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 
 			res = append(res, RDF{Subject: uid, Predicate: k, Object: id, Type: "uid"})
 			res = append(res, next...)
-		case []interface{}:
-			if len(actual) == 0 {
-				continue
-			}
-
-			if _, ok := actual[0].(map[string]interface{}); !ok {
-				res = append(res, RDF{Subject: uid, Predicate: k, Object: actual})
-				continue
-			}
-
-			for _, e := range actual {
-				next, id := wr.rdfify(e.(map[string]interface{}))
-				if len(next) == 0 {
-					continue
-				}
-
-				res = append(res, RDF{Subject: uid, Predicate: k, Object: id, Type: "uid"})
-				res = append(res, next...)
-			}
 		default:
-			res = append(res, RDF{Subject: uid, Predicate: k, Object: actual, Type: "string"})
+			res = append(res, RDF{Subject: uid, Predicate: k, Object: v, Type: schema.Type})
 		}
 	}
 
