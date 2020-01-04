@@ -8,13 +8,13 @@ import (
 )
 
 type RDF struct {
-	Subject         uint64
-	Object          interface{}
-	Predicate, Type string
+	Subject   uint64
+	Object    interface{}
+	Predicate string
 }
 
 func (rdf RDF) String() string {
-	return fmt.Sprintf("<%d> <%s> <%v>:%s", rdf.Subject, rdf.Predicate, rdf.Object, rdf.Type)
+	return fmt.Sprintf("<%d> <%s> <%v>", rdf.Subject, rdf.Predicate, rdf.Object)
 }
 
 type RDFs []RDF

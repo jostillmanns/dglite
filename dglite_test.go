@@ -2,16 +2,18 @@ package dglite
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"mooncamp.com/dgx/gql"
 )
 
 type User struct {
-	ID     uint64  `json:"uid"`
-	Name   string  `json:"user.name"`
-	Office *Office `json:"user.office"`
-	Teams  []Team  `json:"user.teams"`
+	ID       uint64    `json:"uid"`
+	Birthday time.Time `json:"user.birthday"`
+	Name     string    `json:"user.name"`
+	Office   *Office   `json:"user.office"`
+	Teams    []Team    `json:"user.teams"`
 }
 
 type Office struct {
@@ -32,6 +34,7 @@ type Location struct {
 
 var testSchema = []Schema{
 	{Predicate: "user.name", Type: "string", Many: false},
+	{Predicate: "user.birthday", Type: "datetime", Many: false},
 	{Predicate: "user.office", Type: "uid", Many: false},
 	{Predicate: "user.teams", Type: "uid", Many: true},
 	{Predicate: "user.name", Type: "string", Many: false},

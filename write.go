@@ -57,7 +57,7 @@ func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 						continue
 					}
 
-					res = append(res, RDF{Subject: uid, Predicate: k, Object: id, Type: "uid"})
+					res = append(res, RDF{Subject: uid, Predicate: k, Object: id})
 					res = append(res, next...)
 				}
 				continue
@@ -69,10 +69,10 @@ func (wr *writer) rdfify(node map[string]interface{}) ([]RDF, uint64) {
 				continue
 			}
 
-			res = append(res, RDF{Subject: uid, Predicate: k, Object: id, Type: "uid"})
+			res = append(res, RDF{Subject: uid, Predicate: k, Object: id})
 			res = append(res, next...)
 		default:
-			res = append(res, RDF{Subject: uid, Predicate: k, Object: v, Type: schema.Type})
+			res = append(res, RDF{Subject: uid, Predicate: k, Object: v})
 		}
 	}
 

@@ -52,7 +52,7 @@ func (rdr *reader) resolveChildren(uid uint64, qs []gql.GraphQuery) map[string]i
 				continue
 			}
 
-			if rdf.Type == "uid" {
+			if schema.Type == "uid" {
 				if q.Filter != nil {
 					if !rdr.filter.filter(rdf.Object.(uint64), *q.Filter) {
 						continue

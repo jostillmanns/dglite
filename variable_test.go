@@ -49,9 +49,9 @@ func Test_it_resolves_variables(t *testing.T) {
 	}
 
 	schemas := []Schema{
-		{Predicate: "children", Many: true},
-		{Predicate: "child", Many: false},
-		{Predicate: "name", Many: false},
+		{Predicate: "children", Many: true, Type: "uid"},
+		{Predicate: "child", Many: false, Type: "uid"},
+		{Predicate: "name", Many: false, Type: "string"},
 	}
 
 	rdr := &reader{
