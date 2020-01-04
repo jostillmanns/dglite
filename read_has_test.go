@@ -61,6 +61,32 @@ func Test_it_supports_uid_filter(t *testing.T) {
 	require.Equal(t, []User{{ID: uids[0]}}, actual)
 }
 
+func Test_it_supports_filter_trees(t *testing.T) {
+	dgl := New(testSchema)
+
+	users := []User{{Name: "user a"}, {Name: "user b"}, {Name: "user c"}}
+	userIDs, err := dgl.Write(users)
+	require.NoError(t, err)
+
+	q := []gql.GraphQuery{{
+		Func: &gql.Function{Name: "has", Attr: "user.name"},
+		Filter: &gql.FilterTree{
+			Op: "or",
+			Child: []gql.FilterTree{
+				{Func: &gql.Function{UID: []uint64{userIDs[0]}, Name: "uid"}},
+				{Func: &gql.Function{UID: []uint64{userIDs[1]}, Name: "uid"}},
+			},
+		},
+		Children: []gql.GraphQuery{{Attr: "uid"}},
+	}}
+
+	var actual []User
+	err = dgl.Read(q, &actual)
+	require.NoError(t, err)
+
+	require.Equal(t, []User{{ID: userIDs[0]}, {ID: userIDs[1]}}, actual)
+}
+
 func Test_it_supports_uid_filter_on_nested(t *testing.T) {
 	dgl := New(testSchema)
 
