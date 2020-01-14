@@ -192,3 +192,59 @@ func Test_step_4(t *testing.T) {
 	require.Equal(t, expected[0].Name, actual[0].Name)
 	require.Equal(t, expected[0].Age, actual[0].Age)
 }
+
+func Test_step_5(t *testing.T) {
+	q := gql.GraphQuery{
+		Func: &gql.Function{Name: "allofterms", Attr: "name", Args: []gql.Arg{{Value: "Michael"}}},
+		Children: []gql.GraphQuery{
+			{Attr: "name"}, {Attr: "age"},
+			{
+				Attr:     "friend",
+				Order:    []gql.Order{{Attr: "age"}},
+				Children: []gql.GraphQuery{{Attr: "name"}, {Attr: "age"}},
+			},
+		},
+	}
+
+	expected := []Person{
+		{
+			Name: "Michael",
+			Age:  39,
+			Friend: []Person{
+				{
+					Name: "Catalina",
+					Age:  19,
+				},
+				{
+					Name: "Sang Hyun",
+					Age:  24,
+				},
+				{
+					Name: "Amit",
+					Age:  35,
+				},
+				{
+					Name: "Artyom",
+					Age:  35,
+				},
+				{
+					Name: "Sarah",
+					Age:  55,
+				},
+			},
+		},
+	}
+
+	dgl := database(t)
+	var actual []Person
+	dgl.Read([]gql.GraphQuery{q}, &actual)
+
+	js, _ := json.MarshalIndent(actual, "", "  ")
+	fmt.Println(string(js))
+
+	require.Equal(t, expected, actual)
+
+	require.ElementsMatch(t, expected[0].Friend, actual[0].Friend)
+	require.Equal(t, expected[0].Name, actual[0].Name)
+	require.Equal(t, expected[0].Age, actual[0].Age)
+}
