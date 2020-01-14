@@ -1,8 +1,27 @@
 package dglite
 
-import "mooncamp.com/dgx/gql"
+import (
+	"strconv"
 
-type filter struct{}
+	"mooncamp.com/dgx/gql"
+)
+
+type filter struct {
+	database database
+}
+
+func (fl *filter) value(uid uint64, predicate string) (interface{}, bool) {
+	rdfs := fl.database.Get(uid)
+	for _, e := range rdfs {
+		if e.Predicate != predicate {
+			continue
+		}
+
+		return e.Object, true
+	}
+
+	return nil, false
+}
 
 func (fl *filter) filter(uid uint64, tree gql.FilterTree) bool {
 	if len(tree.Child) > 0 {
@@ -40,6 +59,39 @@ func (fl *filter) filter(uid uint64, tree gql.FilterTree) bool {
 				return true
 			}
 		}
+		return false
+	case "ge":
+		value, ok := fl.value(uid, tree.Func.Attr)
+		if !ok {
+			return false
+		}
+
+		val, err := strconv.Atoi(tree.Func.Args[0].Value)
+		if err != nil {
+			return false
+		}
+
+		if value.(int) >= val {
+			return true
+		}
+
+		return false
+
+	case "le":
+		value, ok := fl.value(uid, tree.Func.Attr)
+		if !ok {
+			return false
+		}
+
+		val, err := strconv.Atoi(tree.Func.Args[0].Value)
+		if err != nil {
+			return false
+		}
+
+		if value.(int) <= val {
+			return true
+		}
+
 		return false
 	default:
 		return false

@@ -1,10 +1,13 @@
 package dglite
 
+import "strings"
+
 type database interface {
 	Get(uid uint64) []RDF
 	Write(rdfs []RDF)
 	ReversePredicate(predicate string) []uint64
 	ReverseObject(predicate string, values []string) []uint64
+	ReverseObjectMatchAll(predicate string, values []string) []uint64
 }
 
 type mapdb struct {
@@ -14,6 +17,23 @@ type mapdb struct {
 
 func newMapDB(schema []Schema) database {
 	return &mapdb{rdfs: make(map[uint64][]RDF), schema: schema}
+}
+
+func (db *mapdb) ReverseObjectMatchAll(predicate string, values []string) []uint64 {
+	res := make([]uint64, 0)
+	for k, v := range db.rdfs {
+		if !db.hasPredicate(v, predicate) {
+			continue
+		}
+
+		if !db.matchesAll(v, predicate, values) {
+			continue
+		}
+
+		res = append(res, k)
+	}
+
+	return res
 }
 
 func (db *mapdb) ReverseObject(predicate string, values []string) []uint64 {
@@ -40,6 +60,24 @@ func (db *mapdb) ReversePredicate(predicate string) []uint64 {
 		}
 	}
 	return res
+}
+
+func (db *mapdb) matchesAll(rdfs []RDF, predicate string, values []string) bool {
+	for _, rdf := range rdfs {
+		if rdf.Predicate != predicate {
+			continue
+		}
+
+		for _, value := range values {
+			if !strings.Contains(rdf.Object.(string), value) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	return false
 }
 
 func (db *mapdb) hasValue(rdfs []RDF, value string) bool {

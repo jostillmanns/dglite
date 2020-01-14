@@ -1,6 +1,8 @@
 package tour
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,7 +58,7 @@ func Test_step_1(t *testing.T) {
 	require.Equal(t, expected, actual)
 }
 
-func Test_stop_2(t *testing.T) {
+func Test_step_2(t *testing.T) {
 	q := gql.GraphQuery{
 		Func: &gql.Function{Name: "eq", Attr: "name", Args: []gql.Arg{{Value: "Michael"}}},
 		Children: []gql.GraphQuery{
@@ -95,4 +97,98 @@ func Test_stop_2(t *testing.T) {
 	dgl.Read([]gql.GraphQuery{q}, &actual)
 
 	require.ElementsMatch(t, expected[0].Friend, actual[0].Friend)
+}
+
+func Test_step_3(t *testing.T) {
+	q := gql.GraphQuery{
+		Func: &gql.Function{Name: "allofterms", Attr: "name", Args: []gql.Arg{{Value: "Michael"}}},
+		Children: []gql.GraphQuery{
+			{Attr: "name"}, {Attr: "age"},
+			{
+				Attr:     "friend",
+				Filter:   &gql.FilterTree{Func: &gql.Function{Name: "ge", Attr: "age", Args: []gql.Arg{{Value: "27"}}}},
+				Children: []gql.GraphQuery{{Attr: "name"}, {Attr: "age"}},
+			},
+		},
+	}
+
+	expected := []Person{
+		{
+			Name: "Michael",
+			Age:  39,
+			Friend: []Person{
+				{
+					Name: "Artyom",
+					Age:  35,
+				},
+				{
+					Name: "Amit",
+					Age:  35,
+				},
+				{
+					Name: "Sarah",
+					Age:  55,
+				},
+			},
+		},
+	}
+
+	dgl := database(t)
+	var actual []Person
+	dgl.Read([]gql.GraphQuery{q}, &actual)
+
+	js, _ := json.MarshalIndent(actual, "", "  ")
+	fmt.Println(string(js))
+
+	require.ElementsMatch(t, expected[0].Friend, actual[0].Friend)
+	require.Equal(t, expected[0].Name, actual[0].Name)
+	require.Equal(t, expected[0].Age, actual[0].Age)
+}
+
+func Test_step_4(t *testing.T) {
+	q := gql.GraphQuery{
+		Func: &gql.Function{Name: "allofterms", Attr: "name", Args: []gql.Arg{{Value: "Michael"}}},
+		Children: []gql.GraphQuery{
+			{Attr: "name"}, {Attr: "age"},
+			{
+				Attr: "friend",
+				Filter: &gql.FilterTree{
+					Op: "and",
+					Child: []gql.FilterTree{
+						{Func: &gql.Function{Name: "ge", Attr: "age", Args: []gql.Arg{{Value: "27"}}}},
+						{Func: &gql.Function{Name: "le", Attr: "age", Args: []gql.Arg{{Value: "48"}}}},
+					},
+				},
+				Children: []gql.GraphQuery{{Attr: "name"}, {Attr: "age"}},
+			},
+		},
+	}
+
+	expected := []Person{
+		{
+			Name: "Michael",
+			Age:  39,
+			Friend: []Person{
+				{
+					Name: "Artyom",
+					Age:  35,
+				},
+				{
+					Name: "Amit",
+					Age:  35,
+				},
+			},
+		},
+	}
+
+	dgl := database(t)
+	var actual []Person
+	dgl.Read([]gql.GraphQuery{q}, &actual)
+
+	js, _ := json.MarshalIndent(actual, "", "  ")
+	fmt.Println(string(js))
+
+	require.ElementsMatch(t, expected[0].Friend, actual[0].Friend)
+	require.Equal(t, expected[0].Name, actual[0].Name)
+	require.Equal(t, expected[0].Age, actual[0].Age)
 }

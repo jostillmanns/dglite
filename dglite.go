@@ -41,8 +41,9 @@ type dglite struct {
 }
 
 func New(schema []Schema) DGLite {
+	db := newMapDB(schema)
 	return &dglite{
-		reader: &reader{schemas: schema, database: newMapDB(schema)},
+		reader: &reader{schemas: schema, database: db, filter: filter{database: db}},
 		writer: newWriter(schema),
 	}
 }

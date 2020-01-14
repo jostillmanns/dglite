@@ -39,7 +39,7 @@ var friendRDFS = []dglite.PlaceholderRDF{
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "name", Object: "상현"}},
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "name", Object: "Sang Hyun"}},
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "dgraph.type", Object: "Person"}},
-	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "age", Object: "24"}},
+	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "age", Object: 24}},
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "friend", Object: "_:amit"}},
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "friend", Object: "_:catalina"}},
 	{PlaceHolder: "_:sang", RDF: dglite.RDF{Predicate: "friend", Object: "_:hyung"}},
