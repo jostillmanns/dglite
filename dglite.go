@@ -36,17 +36,19 @@ type DGLite interface {
 }
 
 type dglite struct {
-	reader *reader
-	writer *writer
-	sorter *sorter
+	reader     *reader
+	writer     *writer
+	sorter     *sorter
+	pagination *pagination
 }
 
 func New(schema []Schema) DGLite {
 	db := newMapDB(schema)
 	return &dglite{
-		reader: &reader{schemas: schema, database: db, filter: filter{database: db}},
-		writer: newWriter(schema),
-		sorter: &sorter{},
+		reader:     &reader{schemas: schema, database: db, filter: filter{database: db}},
+		writer:     newWriter(schema),
+		sorter:     &sorter{},
+		pagination: &pagination{},
 	}
 }
 
@@ -87,6 +89,7 @@ func (dgl *dglite) Read(qs []gql.GraphQuery, in interface{}) error {
 
 		next := dgl.reader.read(e)
 		next = dgl.sorter.sortNodes(e, next)
+		next = dgl.pagination.paginateNodes(e, next)
 		nodes = append(next, nodes...)
 	}
 

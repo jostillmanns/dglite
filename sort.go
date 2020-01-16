@@ -21,7 +21,7 @@ func (st *sorter) sort(q gql.GraphQuery, node map[string]interface{}) map[string
 	for k, v := range node {
 		switch actual := v.(type) {
 		case map[string]interface{}:
-			res[k] = st.sort(st.findQuery(q.Children, k), actual)
+			res[k] = st.sort(findQuery(q.Children, k), actual)
 		case []interface{}:
 			if len(actual) == 0 {
 				res[k] = v
@@ -33,7 +33,7 @@ func (st *sorter) sort(q gql.GraphQuery, node map[string]interface{}) map[string
 				continue
 			}
 
-			nq := st.findQuery(q.Children, k)
+			nq := findQuery(q.Children, k)
 			var ns []interface{}
 			for _, e := range actual {
 				ns = append(ns, st.sort(nq, e.(map[string]interface{})))
@@ -56,7 +56,7 @@ func (st *sorter) sort(q gql.GraphQuery, node map[string]interface{}) map[string
 	return res
 }
 
-func (st *sorter) findQuery(qs []gql.GraphQuery, predicate string) gql.GraphQuery {
+func findQuery(qs []gql.GraphQuery, predicate string) gql.GraphQuery {
 	for _, e := range qs {
 		if e.Attr == predicate {
 			return e
@@ -80,7 +80,14 @@ func (sn *sortedNodes) Swap(i, j int) {
 }
 
 func (sn *sortedNodes) Less(i, j int) bool {
-	a := sn.nodes[i].(map[string]interface{})[sn.predicate].(int)
-	b := sn.nodes[j].(map[string]interface{})[sn.predicate].(int)
-	return a < b
+	switch a := sn.nodes[i].(map[string]interface{})[sn.predicate].(type) {
+	case int:
+		b := sn.nodes[j].(map[string]interface{})[sn.predicate].(int)
+		return a < b
+	case string:
+		b := sn.nodes[j].(map[string]interface{})[sn.predicate].(string)
+		return a < b
+	}
+
+	return false
 }
