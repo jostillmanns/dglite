@@ -8,4 +8,4 @@ require (
 	mooncamp.com/dgx v0.0.0
 )
 
-replace mooncamp.com/dgx => ../awkward/dgx
+replace mooncamp.com/dgx v0.0.0 => github.com/mooncamp/dgx v0.0.0-20200116221757-825c2c1e1b5d
