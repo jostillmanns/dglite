@@ -29,5 +29,5 @@ func Test_it_supports_time_objects(t *testing.T) {
 	err = dgl.Read([]gql.GraphQuery{q}, &actual)
 	require.NoError(t, err)
 
-	require.Equal(t, tm.Round(time.Second), actual[0].Birthday.Round(time.Second))
+	require.Equal(t, tm.Round(time.Second).Local(), actual[0].Birthday.Round(time.Second).Local())
 }
